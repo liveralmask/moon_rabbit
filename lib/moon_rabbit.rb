@@ -26,7 +26,10 @@ module MoonRabbit
     end
     
     def compile( options )
-      @compile.merge!( options )
+      # options を汚染しない
+      options.each{|key, value|
+        @compile[ key ] = value.clone
+      }
       
       @compile[ :objs ] = []
       @compile[ :deps ] = []
