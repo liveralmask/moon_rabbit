@@ -36,6 +36,8 @@ Or install it yourself as:
             :options         => [ "-g -Wall -O2" ]
         }
         compile( compile_options )
+		
+		output
     }
 
 [bash]

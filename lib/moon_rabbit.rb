@@ -2,7 +2,11 @@ require "moon_rabbit/version"
 
 module MoonRabbit
   class Makefile
+    attr_accessor   :file_path
+    
     def initialize( file_path = "Makefile", &block )
+      @file_path = file_path
+      
       @compile = {
         :tool         => "",
         :target       => "",
@@ -19,8 +23,6 @@ module MoonRabbit
       }
       
       instance_eval( &block )
-      
-      output( file_path )
     end
     
     def compile( options )
@@ -44,7 +46,9 @@ module MoonRabbit
       @link.merge!( options )
     end
     
-    def output( file_path )
+    def output( file_path = nil )
+      file_path = @file_path if file_path.nil?
+      
       open( file_path, "wb" ){|f|
         f.puts <<EOS
 COMPILER        = #{@compile[ :tool ]}

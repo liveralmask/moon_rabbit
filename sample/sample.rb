@@ -15,5 +15,6 @@ Makefile.new( "Makefile" ){
 		:options		=> [ "-g -Wall -O2" ]
 	}
 	compile( compile_options )
+	
+	output
 }
-
