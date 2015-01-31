@@ -94,11 +94,15 @@ EOS
 AR  = ar r
 
 $(TARGET): $(OBJS) $(STATIC_LIBS)
+	[ -e $(dir $@) ] || $(MKDIR) $(dir $@)
+	
 	$(AR) $@ $^
 EOS
         else
           f.puts <<EOS
 $(TARGET): $(OBJS) $(STATIC_LIBS)
+	[ -e $(dir $@) ] || $(MKDIR) $(dir $@)
+	
 	$(CC) $(LINK_OPTIONS) -o $@ $^
 EOS
         end
