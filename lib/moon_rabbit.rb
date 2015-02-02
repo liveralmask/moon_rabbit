@@ -54,21 +54,21 @@ module MoonRabbit
       
       open( file_path, "wb" ){|f|
         f.puts <<EOS
-COMPILER        = #{@compile[ :tool ]}
-COMPILE_OPTIONS = #{@compile[ :options ].join( " " )}
-LINK_OPTIONS    = #{@link[ :shared_libs ].join( " " )}
-RM              = rm -f
-MKDIR           = mkdir -p
-TARGET          = #{@compile[ :target ]}
-SRCS            = #{@compile[ :srcs ].join( " " )}
-OBJS            = #{@compile[ :objs ].join( " " )}
-OBJ_DIR         = #{@compile[ :obj_dir ]}
-STATIC_LIBS     = #{@link[ :static_libs ].join( " " )}
-DEPS            = #{@compile[ :deps ].join( " " )}
+COMPILER                  = #{@compile[ :tool ]}
+override COMPILE_OPTIONS += #{@compile[ :options ].join( " " )}
+override LINK_OPTIONS    += #{@link[ :shared_libs ].join( " " )}
+override STATIC_LIBS     += #{@link[ :static_libs ].join( " " )}
+RM                        = rm -f
+MKDIR                     = mkdir -p
+MAIN_TARGET               = #{@compile[ :target ]}
+SRCS                      = #{@compile[ :srcs ].join( " " )}
+OBJ_DIR                   = #{@compile[ :obj_dir ]}
+OBJS                      = #{@compile[ :objs ].join( " " )}
+DEPS                      = #{@compile[ :deps ].join( " " )}
 
 .PHONY: all obj clean
 
-all: $(TARGET)
+all: $(MAIN_TARGET)
 
 obj: $(OBJS)
 
@@ -76,11 +76,11 @@ clean:
 	$(RM) #{@compile[ :target ]} $(OBJS) $(DEPS)
 
 $(OBJ_DIR)/%.o: %#{@compile[ :src_ext ]}
-	[ -e $(dir $@) ] || $(MKDIR) $(dir $@)
+	@[ -e $(dir $@) ] || $(MKDIR) $(dir $@)
 	
 	$(COMPILER) $(COMPILE_OPTIONS) -c $< -o $@
 	
-	$(COMPILER) $(COMPILE_OPTIONS) -MM -MG -MP $< \\
+	@$(COMPILER) $(COMPILE_OPTIONS) -MM -MG -MP $< \\
 		| sed "s/.*\\.o/$(subst /,\\/,$@) $(subst /,\\/,$(patsubst %.o,%.d,$@))/g" > $(patsubst %.o,%.d,$@); \\
 		[ -s $(patsubst %.o,%.d,$@) ] || $(RM) $(patsubst %.o,%.d,$@)
 
@@ -91,19 +91,21 @@ EOS
         case @compile[ :target_ext ]
         when ".a"
           f.puts <<EOS
-AR  = ar r
+AR = ar r
 
-$(TARGET): $(OBJS) $(STATIC_LIBS)
-	[ -e $(dir $@) ] || $(MKDIR) $(dir $@)
+$(MAIN_TARGET): $(OBJS) $(STATIC_LIBS)
+	@[ -e $(dir $@) ] || $(MKDIR) $(dir $@)
 	
 	$(AR) $@ $^
+
 EOS
         else
           f.puts <<EOS
-$(TARGET): $(OBJS) $(STATIC_LIBS)
-	[ -e $(dir $@) ] || $(MKDIR) $(dir $@)
+$(MAIN_TARGET): $(OBJS) $(STATIC_LIBS)
+	@[ -e $(dir $@) ] || $(MKDIR) $(dir $@)
 	
-	$(CC) $(LINK_OPTIONS) -o $@ $^
+	$(COMPILER) $(LINK_OPTIONS) -o $@ $^
+
 EOS
         end
       }
