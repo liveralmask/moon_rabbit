@@ -1,8 +1,7 @@
 require "moon_rabbit"
-
 include MoonRabbit
 
-Makefile.new( "Makefile" ){
+Makefiles.add Makefile.new( "Makefile" ){
 	compile_options = {
 		:tool			=> "gcc",
 		:target			=> "main",
@@ -12,9 +11,7 @@ Makefile.new( "Makefile" ){
 		],
 		:obj_dir		=> "obj",
 		:inc_dirs		=> [ "inc" ],
-		:options		=> [ "-g -Wall -O2" ]
+		:options		=> [ "-Wall" ]
 	}
 	compile( compile_options )
-	
-	output
 }

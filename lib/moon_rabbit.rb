@@ -116,4 +116,44 @@ protected
       file_path.sub( /\..+$/, ext )
     end
   end
+  
+  class RakeTask
+    attr_accessor   :name
+    
+    def initialize( target, deps, desc, cmd )
+      @target = target
+      @name   = @target.instance_of?( Symbol ) ? ":#{@target}" : "\"#{@target}\""
+      @deps   = deps
+      @desc   = desc
+      @cmd    = cmd
+    end
+    
+    def to_s
+      <<EOS
+desc "#{@desc}"
+task #{@name} => #{@deps} do |t|
+#{@cmd}
+end
+
+EOS
+    end
+  end
+  
+  class Makefiles
+    @@makefiles = []
+    
+    def self.add( makefile )
+      @@makefiles.push makefile
+    end
+    
+    def self.makefiles
+      @@makefiles
+    end
+    
+    def self.each
+      @@makefiles.each{|makefile|
+        yield( makefile )
+      }
+    end
+  end
 end

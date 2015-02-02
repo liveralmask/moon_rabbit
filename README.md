@@ -18,27 +18,59 @@ Or install it yourself as:
 
 ## Usage
 
-[sample.rb]
+[Makefiles.rb]
     require "moon_rabbit"
-    
     include MoonRabbit
     
-    Makefile.new( "Makefile" ){
+    Makefiles.add Makefile.new( "Makefile" ){
         compile_options = {
             :tool            => "gcc",
-            :target          => "main",
+            :target            => "main",
             :srcs            => [
                 "src/main.c",
                 "src/sub.c"
             ],
-            :obj_dir         => "obj",
+            :obj_dir        => "obj",
             :inc_dirs        => [ "inc" ],
-            :options         => [ "-g -Wall -O2" ]
+            :options        => [ "-Wall" ]
         }
         compile( compile_options )
-		
-		output
     }
+
+[Rakefiles.rb]
+    require "./Makefiles"
+    
+    task :default do
+        sh "rake -T -f #{__FILE__}"
+    end
+    
+    desc "Debug Build"
+    task :debug do
+        Makefiles.each{|makefile|
+            sh "make COMPILE_OPTIONS='-g' -f #{makefile.file_path}"
+        }
+    end
+    
+    desc "Release Build"
+    task :release do
+        Makefiles.each{|makefile|
+            sh "make COMPILE_OPTIONS='-O2' -f #{makefile.file_path}"
+        }
+    end
+    
+    desc "Clean"
+    task :clean do
+        Makefiles.each{|makefile|
+            sh "make clean -f #{makefile.file_path}"
+        }
+    end
+    
+    desc "Output Makefiles"
+    task :output do
+        Makefiles.each{|makefile|
+            makefile.output
+        }
+    end
 
 [bash]
 ruby sample.rb
