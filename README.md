@@ -40,28 +40,35 @@ Or install it yourself as:
 [Rakefile]
     require "./Makefiles"
     
-    task :default do
-        sh "rake -T -f #{__FILE__}"
+    def make( option )
+        Makefiles.file_paths.each{|file_path|
+            sh "make #{option} -f #{file_path}"
+        }
     end
+    
+    task :default => [ :output ]
     
     desc "Debug Build"
     task :debug do
-        Makefiles.each{|makefile|
-            sh "make COMPILE_OPTIONS='-g' -f #{makefile.file_path}"
-        }
+        compile_options = "-g"
+        make "COMPILE_OPTIONS='#{compile_options}'"
     end
     
     desc "Release Build"
     task :release do
-        Makefiles.each{|makefile|
-            sh "make COMPILE_OPTIONS='-O2' -f #{makefile.file_path}"
-        }
+        compile_options = "-O2"
+        make "COMPILE_OPTIONS='#{compile_options}'"
     end
     
-    desc "Clean"
+    desc "Clean Build"
     task :clean do
-        Makefiles.each{|makefile|
-            sh "make clean -f #{makefile.file_path}"
+        make "clean"
+    end
+    
+    desc "Remove Makefiles"
+    task :rm do
+        Makefiles.file_paths.each{|file_path|
+            sh "rm -f #{file_path}"
         }
     end
     
