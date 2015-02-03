@@ -117,28 +117,6 @@ protected
     end
   end
   
-  class RakeTask
-    attr_accessor   :name
-    
-    def initialize( target, deps, desc, cmd )
-      @target = target
-      @name   = @target.instance_of?( Symbol ) ? ":#{@target}" : "\"#{@target}\""
-      @deps   = deps
-      @desc   = desc
-      @cmd    = cmd
-    end
-    
-    def to_s
-      <<EOS
-desc "#{@desc}"
-task #{@name} => #{@deps} do |t|
-#{@cmd}
-end
-
-EOS
-    end
-  end
-  
   class Makefiles
     @@makefiles = []
     
@@ -154,6 +132,10 @@ EOS
       @@makefiles.each{|makefile|
         yield( makefile )
       }
+    end
+    
+    def self.file_paths
+      @@makefiles.collect{|makefile| makefile.file_path}
     end
   end
 end

@@ -37,7 +37,7 @@ Or install it yourself as:
         compile( compile_options )
     }
 
-[Rakefiles.rb]
+[Rakefile]
     require "./Makefiles"
     
     task :default do
@@ -73,8 +73,7 @@ Or install it yourself as:
     end
 
 [bash]
-ruby sample.rb
-make all
+rake output clean debug
 ./main
 
 ## Contributing

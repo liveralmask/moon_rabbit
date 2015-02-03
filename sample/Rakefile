@@ -1,0 +1,14 @@
+require "./Makefiles"
+require "moon_rabbit/Rakefile"
+
+task :default => [ :output ]
+
+tasks[ :debug ] = Proc.new{
+	compile_options = "-g"
+	make( "COMPILE_OPTIONS='#{compile_options}'" )
+}
+
+tasks[ :release ] = Proc.new{
+	compile_options = "-O2"
+	make( "COMPILE_OPTIONS='#{compile_options}'" )
+}
