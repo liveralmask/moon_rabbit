@@ -42,11 +42,21 @@ module MoonRabbit
       @compile[ :inc_dirs ].each{|inc_dir|
         @compile[ :options ].push "-I#{inc_dir}"
       }
+      @compile[ :defines ].each{|define|
+        @compile[ :options ].push "-D#{define}"
+      }
       @compile[ :target_ext ] = File.extname( @compile[ :target ] )
     end
     
     def link( options )
-      @link.merge!( options )
+      # options を汚染しない
+      options.each{|key, value|
+        @link[ key ] = value.clone
+      }
+      
+      @link[ :shared_libs ].each{|shared_lib|
+        @link[ :options ].push "-l#{shared_lib}"
+      }
     end
     
     def output( file_path = nil )
@@ -56,7 +66,7 @@ module MoonRabbit
         f.puts <<EOS
 COMPILER                  = #{@compile[ :tool ]}
 override COMPILE_OPTIONS += #{@compile[ :options ].join( " " )}
-override LINK_OPTIONS    += #{@link[ :shared_libs ].join( " " )}
+override LINK_OPTIONS    += #{@link[ :options ].join( " " )}
 override STATIC_LIBS     += #{@link[ :static_libs ].join( " " )}
 RM                        = rm -f
 MKDIR                     = mkdir -p
@@ -73,7 +83,9 @@ all: $(MAIN_TARGET)
 obj: $(OBJS)
 
 clean:
-	$(RM) #{@compile[ :target ]} $(OBJS) $(DEPS)
+	$(RM) #{@compile[ :target ]}
+	$(RM) $(OBJS)
+	$(RM) $(DEPS)
 
 $(OBJ_DIR)/%.o: %#{@compile[ :src_ext ]}
 	@[ -e $(dir $@) ] || $(MKDIR) $(dir $@)
@@ -136,6 +148,22 @@ protected
     
     def self.file_paths
       @@makefiles.collect{|makefile| makefile.file_path}
+    end
+    
+    def self.clear
+      @@makefiles = []
+    end
+  end
+  
+  class Options
+    @@options = {}
+    
+    def self.merge!( options )
+      @@options.merge!( options ){|key, value1, value2| "#{value1} #{value2}"}
+    end
+    
+    def self.to_s
+      @@options.collect{|key, value| "#{key}='#{value}'"}.join( " " )
     end
   end
 end
