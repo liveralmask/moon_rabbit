@@ -125,7 +125,7 @@ EOS
     
 protected
     def sub_ext( file_path, ext )
-      file_path.sub( /\..+$/, ext )
+      "#{File.dirname( file_path )}/#{File.basename( file_path, '.*' )}#{ext}"
     end
   end
   
