@@ -23,22 +23,19 @@ Or install it yourself as:
     include MoonRabbit
     
     Makefiles.add Makefile.new( "Makefile" ){
-        compile_options = {
-            :tool            => "gcc",
-            :target            => "main",
-            :srcs            => [
-                "src/main.c",
-                "src/sub.c"
-            ],
-            :obj_dir        => "obj",
-            :inc_dirs        => [ "inc" ],
-            :options        => [ "-Wall" ]
-        }
-        compile( compile_options )
+        compiler "gcc"
+        main_target "main"
+        srcs [
+            "src/main.c",
+            "src/sub.c"
+        ]
+        obj_dir "obj"
+        compile_option "-Iinc -g -Wall -O2"
     }
 
 [Rakefile]
-    require "./Makefiles"
+    require "moon_rabbit"
+    include MoonRabbit
     
     def make( option )
         Makefiles.file_paths.each{|file_path|
@@ -46,41 +43,42 @@ Or install it yourself as:
         }
     end
     
-    task :default => [ :output ]
+    task :default => [ :all ]
     
-    desc "Debug Build"
-    task :debug do
-        compile_options = "-g"
-        make "COMPILE_OPTIONS='#{compile_options}'"
-    end
-    
-    desc "Release Build"
-    task :release do
-        compile_options = "-O2"
-        make "COMPILE_OPTIONS='#{compile_options}'"
+    desc "All Build"
+    task :all do |t, args|
+        require "./Makefiles"
+        
+        make Options.to_s
     end
     
     desc "Clean Build"
-    task :clean do
+    task :clean do |t, args|
+        require "./Makefiles"
+        
         make "clean"
     end
     
     desc "Remove Makefiles"
-    task :rm do
+    task :rm do |t, args|
+        require "./Makefiles"
+        
         Makefiles.file_paths.each{|file_path|
             sh "rm -f #{file_path}"
         }
     end
     
     desc "Output Makefiles"
-    task :output do
+    task :output do |t, args|
+        require "./Makefiles"
+        
         Makefiles.each{|makefile|
             makefile.output
         }
     end
 
 [bash]
-rake output clean debug
+rake output all
 ./main
 
 ## Contributing

@@ -8,73 +8,100 @@ module MoonRabbit
       @file_path = file_path
       
       @compile = {
-        :tool         => "",
-        :target       => "",
+        :compiler     => "",
+        :main_target  => "",
         :srcs         => [],
         :obj_dir      => ".",
-        :inc_dirs     => [],
         :options      => [],
-        :defines      => []
       }
       @link    = {
         :static_libs  => [],
-        :shared_libs  => [],
-        :options      => []
+        :options      => [],
       }
       
       instance_eval( &block )
     end
     
-    def compile( options )
-      # options を汚染しない
-      options.each{|key, value|
-        @compile[ key ] = value.clone
-      }
-      
-      @compile[ :objs ] = []
-      @compile[ :deps ] = []
-      @compile[ :srcs ].each{|src|
-        obj = "#{@compile[ :obj_dir ]}/#{sub_ext( src, '.o' )}"
-        @compile[ :objs ].push obj
-        @compile[ :deps ].push sub_ext( obj, ".d" )
-      }
-      @compile[ :src_ext ] = File.extname( @compile[ :srcs ].first )
-      @compile[ :inc_dirs ].each{|inc_dir|
-        @compile[ :options ].push "-I#{inc_dir}"
-      }
-      @compile[ :defines ].each{|define|
-        @compile[ :options ].push "-D#{define}"
-      }
-      @compile[ :target_ext ] = File.extname( @compile[ :target ] )
+    def compiler( compiler )
+      @compile[ :compiler ] = compiler
     end
     
-    def link( options )
-      # options を汚染しない
-      options.each{|key, value|
-        @link[ key ] = value.clone
+    def main_target( main_target )
+      @compile[ :main_target ] = main_target
+    end
+    
+    def src( src )
+      @compile[ :srcs ].push src
+    end
+    
+    def srcs( srcs )
+      srcs.each{|src|
+        self.src src
       }
-      
-      @link[ :shared_libs ].each{|shared_lib|
-        @link[ :options ].push "-l#{shared_lib}"
+    end
+    
+    def obj_dir( obj_dir )
+      @compile[ :obj_dir ] = obj_dir
+    end
+    
+    def compile_option( compile_option )
+      @compile[ :options ].push compile_option
+    end
+    
+    def compile_options( compile_options )
+      compile_options.each{|compile_option|
+        self.compile_option compile_option
+      }
+    end
+    
+    def static_lib( static_lib )
+      @link[ :static_libs ].push static_lib
+    end
+    
+    def static_libs( static_libs )
+      static_libs.each{|static_lib|
+        self.static_lib static_lib
+      }
+    end
+    
+    def link_option( link_option )
+      @link[ :options ].push link_option
+    end
+    
+    def link_options( link_options )
+      link_options.each{|link_option|
+        self.link_option link_option
       }
     end
     
     def output( file_path = nil )
+      return if @compile[ :srcs ].empty?
+      
       file_path = @file_path if file_path.nil?
+      
+      objs = []
+      deps = []
+      @compile[ :srcs ].each{|src|
+        obj = "#{@compile[ :obj_dir ]}/#{sub_ext( src, '.o' )}"
+        objs.push obj
+        deps.push sub_ext( obj, ".d" )
+      }
+      src_ext = File.extname( @compile[ :srcs ].first )
+      main_target_ext = File.extname( @compile[ :main_target ] )
       
       open( file_path, "wb" ){|f|
         f.puts <<EOS
-COMPILER                  = #{@compile[ :tool ]}
+COMPILER                  = #{@compile[ :compiler ]}
 override COMPILE_OPTIONS += #{@compile[ :options ].join( " " )}
 override LINK_OPTIONS    += #{@link[ :options ].join( " " )}
 override STATIC_LIBS     += #{@link[ :static_libs ].join( " " )}
 RM                        = rm -f
 MKDIR                     = mkdir -p
-MAIN_TARGET               = #{@compile[ :target ]}
+MAIN_TARGET               = #{@compile[ :main_target ]}
 SRCS                      = #{@compile[ :srcs ].join( " " )}
 OBJ_DIR                   = #{@compile[ :obj_dir ]}
-OBJS                      = #{@compile[ :objs ].join( " " )}
-DEPS                      = #{@compile[ :deps ].join( " " )}
+OBJS                      = #{objs.join( " " )}
+DEPS                      = #{deps.join( " " )}
 
 .PHONY: all obj clean
 
@@ -83,11 +110,11 @@ all: $(MAIN_TARGET)
 obj: $(OBJS)
 
 clean:
-	$(RM) #{@compile[ :target ]}
+	$(RM) #{@compile[ :main_target ]}
 	$(RM) $(OBJS)
 	$(RM) $(DEPS)
 
-$(OBJ_DIR)/%.o: %#{@compile[ :src_ext ]}
+$(OBJ_DIR)/%.o: %#{src_ext}
 	@[ -e $(dir $@) ] || $(MKDIR) $(dir $@)
 	
 	$(COMPILER) $(COMPILE_OPTIONS) -c $< -o $@
@@ -100,7 +127,7 @@ $(OBJ_DIR)/%.o: %#{@compile[ :src_ext ]}
 
 EOS
         
-        case @compile[ :target_ext ]
+        case main_target_ext
         when ".a"
           f.puts <<EOS
 AR = ar r
