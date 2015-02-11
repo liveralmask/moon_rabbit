@@ -2,9 +2,9 @@ require "moon_rabbit/version"
 
 module MoonRabbit
   class Makefile
-    attr_accessor   :file_path
+    attr_accessor   :file_path, :compile, :link
     
-    def initialize( file_path = "Makefile", &block )
+    def initialize( file_path = nil, &block )
       @file_path = file_path
       
       @compile = {
@@ -14,12 +14,27 @@ module MoonRabbit
         :obj_dir      => ".",
         :options      => [],
       }
-      @link    = {
+      
+      @link = {
         :static_libs  => [],
         :options      => [],
       }
       
       instance_eval( &block )
+    end
+    
+    def add( makefile )
+      makefile.compile.each{|key, value|
+        if @compile[ key ].instance_of?( String )
+          @compile[ key ] = value
+        elsif @compile[ key ].instance_of?( Array )
+          @compile[ key ].concat value
+        end
+      }
+      
+      makefile.link.each{|key, value|
+        @link[ key ].concat value
+      }
     end
     
     def compiler( compiler )
@@ -78,6 +93,7 @@ module MoonRabbit
       return if @compile[ :srcs ].empty?
       
       file_path = @file_path if file_path.nil?
+      return if file_path.nil?
       
       objs = []
       deps = []
@@ -110,7 +126,7 @@ all: $(MAIN_TARGET)
 obj: $(OBJS)
 
 clean:
-	$(RM) #{@compile[ :main_target ]}
+	$(RM) $(MAIN_TARGET)
 	$(RM) $(OBJS)
 	$(RM) $(DEPS)
 
@@ -160,6 +176,8 @@ protected
     @@makefiles = []
     
     def self.add( makefile )
+      return if makefile.file_path.nil?
+      
       @@makefiles.push makefile
     end
     
