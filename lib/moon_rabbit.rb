@@ -89,11 +89,9 @@ module MoonRabbit
       }
     end
     
-    def output( file_path = nil )
+    def output
       return if @compile[ :srcs ].empty?
-      
-      file_path = @file_path if file_path.nil?
-      return if file_path.nil?
+      return if @file_path.nil?
       
       objs = []
       deps = []
@@ -105,7 +103,7 @@ module MoonRabbit
       src_ext = File.extname( @compile[ :srcs ].first )
       main_target_ext = File.extname( @compile[ :main_target ] )
       
-      open( file_path, "wb" ){|f|
+      open( @file_path, "wb" ){|f|
         f.puts <<EOS
 COMPILER                  = #{@compile[ :compiler ]}
 override COMPILE_OPTIONS += #{@compile[ :options ].join( " " )}
@@ -176,8 +174,6 @@ protected
     @@makefiles = []
     
     def self.add( makefile )
-      return if makefile.file_path.nil?
-      
       @@makefiles.push makefile
     end
     
