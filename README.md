@@ -18,7 +18,8 @@ Or install it yourself as:
 
 ## Usage
 
-[Makefiles.rb]
+[Makefiles.rb]  
+
     require "moon_rabbit"
     include MoonRabbit
     
@@ -33,7 +34,8 @@ Or install it yourself as:
         compile_option "-Iinc -g -Wall -O2"
     }
 
-[Rakefile]
+[Rakefile]  
+
     require "moon_rabbit"
     include MoonRabbit
     
@@ -77,9 +79,10 @@ Or install it yourself as:
         }
     end
 
-[bash]
-rake output all
-./main
+[bash]  
+
+    rake output all
+    ./main
 
 ## Contributing
 
