@@ -90,7 +90,6 @@ module MoonRabbit
     end
     
     def output
-      return if @compile[ :srcs ].empty?
       return if @file_path.nil?
       
       objs = []
@@ -100,7 +99,7 @@ module MoonRabbit
         objs.push obj
         deps.push sub_ext( obj, ".d" )
       }
-      src_ext = File.extname( @compile[ :srcs ].first )
+      src_ext = @compile[ :srcs ].empty? ? nil : File.extname( @compile[ :srcs ].first )
       main_target_ext = File.extname( @compile[ :main_target ] )
       
       open( @file_path, "wb" ){|f|
@@ -128,6 +127,10 @@ clean:
 	$(RM) $(OBJS)
 	$(RM) $(DEPS)
 
+EOS
+        
+        if ! src_ext.nil?
+          f.puts <<EOS
 $(OBJ_DIR)/%.o: %#{src_ext}
 	@[ -e $(dir $@) ] || $(MKDIR) $(dir $@)
 	
@@ -140,6 +143,7 @@ $(OBJ_DIR)/%.o: %#{src_ext}
 -include $(DEPS)
 
 EOS
+        end
         
         case main_target_ext
         when ".a"
