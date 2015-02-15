@@ -150,7 +150,7 @@ EOS
           f.puts <<EOS
 AR = ar r
 
-$(MAIN_TARGET): $(OBJS) $(STATIC_LIBS)
+$(MAIN_TARGET): $(OBJS)
 	@[ -e $(dir $@) ] || $(MKDIR) $(dir $@)
 	
 	$(AR) $@ $^
