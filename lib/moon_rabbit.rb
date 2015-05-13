@@ -168,7 +168,7 @@ EOS
       }
     end
     
-protected
+  protected
     def sub_ext( file_path, ext )
       "#{File.dirname( file_path )}/#{File.basename( file_path, '.*' )}#{ext}"
     end
@@ -209,6 +209,16 @@ protected
     
     def self.to_s
       @@options.collect{|key, value| "#{key}='#{value}'"}.join( " " )
+    end
+  end
+  
+  module PermanentProcess
+    def self.watch( command, &block )
+      begin
+        pid = Process.spawn( command )
+        
+        Process.waitpid( pid )
+      end while instance_exec( $?, &block )
     end
   end
 end

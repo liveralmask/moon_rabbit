@@ -33,6 +33,16 @@ Or install it yourself as:
         obj_dir "obj"
         compile_option "-Iinc -g -Wall -O2"
     }
+    
+    Makefiles.add Makefile.new( "Makefile.process" ){
+        compiler "gcc"
+        main_target "process"
+        srcs [
+            "process.c"
+        ]
+        obj_dir "obj"
+        compile_option "-g -Wall -O2"
+    }
 
 [Rakefile]  
 
@@ -83,6 +93,8 @@ Or install it yourself as:
 
     rake output all
     ./main
+    
+    ruby watch.rb &
 
 ## Contributing
 
