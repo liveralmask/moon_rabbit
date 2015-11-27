@@ -1,0 +1,3 @@
+require "moon_rabbit"
+require "moon_rabbit/Rakefile"
+require "./Makefiles"

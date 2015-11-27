@@ -15,7 +15,9 @@ spec/reports
 test/tmp
 test/version_tmp
 tmp
-sample/Makefile
-sample/main
-sample/obj
-sample/process
+Makefile
+Makefile.*
+main
+obj
+*.o
+*.a
