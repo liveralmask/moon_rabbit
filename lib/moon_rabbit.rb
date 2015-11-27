@@ -2,12 +2,14 @@ require "moon_rabbit/version"
 
 module MoonRabbit
   class Makefile
-    attr_accessor   :file_path, :compile, :link
+    attr_accessor   :files, :compiles, :links
     
-    def initialize( file_path = nil, &block )
-      @file_path = file_path
+    def initialize( &block )
+      @files = {
+        :path =>      "",
+      }
       
-      @compile = {
+      @compiles = {
         :compiler     => "",
         :main_target  => "",
         :srcs         => [],
@@ -15,7 +17,7 @@ module MoonRabbit
         :options      => [],
       }
       
-      @link = {
+      @links = {
         :static_libs  => [],
         :options      => [],
       }
@@ -24,29 +26,37 @@ module MoonRabbit
     end
     
     def add( makefile )
-      makefile.compile.each{|key, value|
-        if @compile[ key ].instance_of?( String )
-          @compile[ key ] = value
-        elsif @compile[ key ].instance_of?( Array )
-          @compile[ key ].concat value
+      makefile.files.each{|key, value|
+        @files[ key ] = value
+      }
+      
+      makefile.compiles.each{|key, value|
+        if @compiles[ key ].instance_of?( String )
+          @compiles[ key ] = value
+        elsif @compiles[ key ].instance_of?( Array )
+          @compiles[ key ].concat value
         end
       }
       
-      makefile.link.each{|key, value|
-        @link[ key ].concat value
+      makefile.links.each{|key, value|
+        @links[ key ].concat value
       }
     end
     
+    def path( path )
+      @files[ :path ] = path
+    end
+    
     def compiler( compiler )
-      @compile[ :compiler ] = compiler
+      @compiles[ :compiler ] = compiler
     end
     
     def main_target( main_target )
-      @compile[ :main_target ] = main_target
+      @compiles[ :main_target ] = main_target
     end
     
     def src( src )
-      @compile[ :srcs ].push src
+      @compiles[ :srcs ].push src
     end
     
     def srcs( srcs )
@@ -56,11 +66,11 @@ module MoonRabbit
     end
     
     def obj_dir( obj_dir )
-      @compile[ :obj_dir ] = obj_dir
+      @compiles[ :obj_dir ] = obj_dir
     end
     
     def compile_option( compile_option )
-      @compile[ :options ].push compile_option
+      @compiles[ :options ].push compile_option
     end
     
     def compile_options( compile_options )
@@ -70,7 +80,7 @@ module MoonRabbit
     end
     
     def static_lib( static_lib )
-      @link[ :static_libs ].push static_lib
+      @links[ :static_libs ].push static_lib
     end
     
     def static_libs( static_libs )
@@ -80,7 +90,7 @@ module MoonRabbit
     end
     
     def link_option( link_option )
-      @link[ :options ].push link_option
+      @links[ :options ].push link_option
     end
     
     def link_options( link_options )
@@ -90,37 +100,33 @@ module MoonRabbit
     end
     
     def output
-      return if @file_path.nil?
-      
       objs = []
       deps = []
-      @compile[ :srcs ].each{|src|
-        obj = "#{@compile[ :obj_dir ]}/#{sub_ext( src, '.o' )}"
+      @compiles[ :srcs ].each{|src|
+        obj = "#{@compiles[ :obj_dir ]}/#{change_ext( src, '.o' )}"
         objs.push obj
-        deps.push sub_ext( obj, ".d" )
+        deps.push change_ext( obj, ".d" )
       }
-      src_ext = @compile[ :srcs ].empty? ? nil : File.extname( @compile[ :srcs ].first )
-      main_target_ext = File.extname( @compile[ :main_target ] )
+      src_ext = File.extname( @compiles[ :srcs ].first )
+      main_target_ext = File.extname( @compiles[ :main_target ] )
       
-      open( @file_path, "wb" ){|f|
+      open( @files[ :path ], "wb" ){|f|
         f.puts <<EOS
-COMPILER                  = #{@compile[ :compiler ]}
-override COMPILE_OPTIONS += #{@compile[ :options ].join( " " )}
-override LINK_OPTIONS    += #{@link[ :options ].join( " " )}
-override STATIC_LIBS     += #{@link[ :static_libs ].join( " " )}
+override COMPILER        += #{@compiles[ :compiler ]}
+override COMPILE_OPTIONS += #{@compiles[ :options ].join( " " )}
+override LINK_OPTIONS    += #{@links[ :options ].join( " " )}
+override STATIC_LIBS     += #{@links[ :static_libs ].join( " " )}
 RM                        = rm -f
 MKDIR                     = mkdir -p
-MAIN_TARGET               = #{@compile[ :main_target ]}
-SRCS                      = #{@compile[ :srcs ].join( " " )}
-OBJ_DIR                   = #{@compile[ :obj_dir ]}
+MAIN_TARGET               = #{@compiles[ :main_target ]}
+SRCS                      = #{@compiles[ :srcs ].join( " " )}
+OBJ_DIR                   = #{@compiles[ :obj_dir ]}
 OBJS                      = #{objs.join( " " )}
 DEPS                      = #{deps.join( " " )}
 
-.PHONY: all obj clean
+.PHONY: all clean
 
 all: $(MAIN_TARGET)
-
-obj: $(OBJS)
 
 clean:
 	$(RM) $(MAIN_TARGET)
@@ -129,8 +135,7 @@ clean:
 
 EOS
         
-        if ! src_ext.nil?
-          f.puts <<EOS
+        f.puts <<EOS
 $(OBJ_DIR)/%.o: %#{src_ext}
 	@[ -e $(dir $@) ] || $(MKDIR) $(dir $@)
 	
@@ -143,7 +148,6 @@ $(OBJ_DIR)/%.o: %#{src_ext}
 -include $(DEPS)
 
 EOS
-        end
         
         case main_target_ext
         when ".a"
@@ -168,8 +172,7 @@ EOS
       }
     end
     
-  protected
-    def sub_ext( file_path, ext )
+    def change_ext( file_path, ext )
       "#{File.dirname( file_path )}/#{File.basename( file_path, '.*' )}#{ext}"
     end
   end
@@ -192,7 +195,7 @@ EOS
     end
     
     def self.file_paths
-      @@makefiles.collect{|makefile| makefile.file_path}
+      @@makefiles.collect{|makefile| makefile.files[ :path ]}
     end
     
     def self.clear
@@ -209,16 +212,6 @@ EOS
     
     def self.to_s
       @@options.collect{|key, value| "#{key}='#{value}'"}.join( " " )
-    end
-  end
-  
-  module PermanentProcess
-    def self.watch( command, &block )
-      begin
-        pid = Process.spawn( command )
-        
-        Process.waitpid( pid )
-      end while instance_exec( $?, &block )
     end
   end
 end

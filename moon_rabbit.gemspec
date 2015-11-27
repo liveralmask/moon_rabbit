@@ -8,9 +8,9 @@ Gem::Specification.new do |spec|
   spec.version       = MoonRabbit::VERSION
   spec.authors       = ["liveralmask"]
   spec.email         = ["liveralmask.lisk@gmail.com"]
-  spec.summary       = %q{Briefly build & process monitoring scripts.}
-  spec.description   = %q{Briefly build & process monitoring scripts.}
-  spec.homepage      = ""
+  spec.summary       = %q{Briefly build scripts.}
+  spec.description   = %q{Briefly build scripts.}
+  spec.homepage      = "https://github.com/liveralmask/moon_rabbit"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0")

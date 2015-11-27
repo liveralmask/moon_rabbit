@@ -1,42 +1,5 @@
 require "moon_rabbit"
-include MoonRabbit
+require "moon_rabbit/Rakefile"
+require "./Makefiles"
 
-def make( option )
-	Makefiles.file_paths.each{|file_path|
-		sh "make #{option} -f #{file_path}"
-	}
-end
-
-task :default => [ :all ]
-
-desc "All Build"
-task :all do |t, args|
-	require "./Makefiles"
-	
-	make Options.to_s
-end
-
-desc "Clean Build"
-task :clean do |t, args|
-	require "./Makefiles"
-	
-	make "clean"
-end
-
-desc "Remove Makefiles"
-task :rm do |t, args|
-	require "./Makefiles"
-	
-	Makefiles.file_paths.each{|file_path|
-		sh "rm -f #{file_path}"
-	}
-end
-
-desc "Output Makefiles"
-task :output do |t, args|
-	require "./Makefiles"
-	
-	Makefiles.each{|makefile|
-		makefile.output
-	}
-end
+task :default => [ :build ]
