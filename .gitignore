@@ -20,4 +20,5 @@ Makefile.*
 main
 obj
 *.o
+*.d
 *.a
